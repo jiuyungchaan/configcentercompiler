@@ -1,4 +1,11 @@
 
+#ifndef __CCC_ZERO_COPY_STREAM_IMPL_H__
+#define __CCC_ZERO_COPY_STREAM_IMPL_H__
+
+#include <string>
+#include <iosfwd>
+#include <zero_copy_stream.h>
+
 
 // A generic traditional input stream interface.
 // 
@@ -29,6 +36,25 @@ public:
 class FileInputStream : public ZeroCopyInputStream
 {
 public:
+	// Creates a stream that reads from the given Unix file descriptor.
+	// If a block size is given, it specifies the number of bytes that
+	// should be read and returned with each call to Next(). Otherwise,
+	// a reasonable default is used.
+	explicit FileInputStream(int file_descriptor, int block_size = -1);
+	~FileInputStream());
+
+	// Flushes any buffers and closes the underlying file. Returns false if 
+	// an error occurs during the process; use GetErrno() to examine the error.
+	// Even if an error occurs, the file descriptor is closed when this returns.
+	bool Close();
+
+	// By default, the file descriptor is not closed when the stream is 
+	// destroyed. Call SetCloseOnDelete(true) to change that. WARNING:
+	// This leaves no way for the caller to detect if close() fails. If
+	// detecting close() errors is important to you, you should arrange
+	// to close the descriptor yourself.
+	void SetCloseOnDelete(bool value) { copying_input_.SetCloseOnDelete(value); }
+
 
 	// If an I/O error has occurred on this file descriptor, this is the 
 	// errno from that error. Otherwise, this is zero. Once an error
@@ -163,3 +189,5 @@ private:
 	void operator= (const FileOutputStream& );
 
 };
+
+#endif /// __CCC_ZERO_COPY_STREAM_IMPL_H__
