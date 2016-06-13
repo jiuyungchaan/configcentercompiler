@@ -193,7 +193,7 @@ public:
 	// should be read and returned with each call to Next(). Otherwise,
 	// a reasonable default is used.
 	explicit FileInputStream(int file_descriptor, int block_size = -1);
-	~FileInputStream());
+	~FileInputStream();
 
 	// Flushes any buffers and closes the underlying file. Returns false if 
 	// an error occurs during the process; use GetErrno() to examine the error.
