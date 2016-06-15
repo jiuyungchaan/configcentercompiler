@@ -1,11 +1,13 @@
 
-#include <zero_copy_stream_impl.h>
+#include "zero_copy_stream_impl.h"
 
 #include <algorithm>
+#include <float.h>
 #include <limits>
+// #include <maths.h>
 #include <stdio.h>
 
-#include <common.h>
+#include "common.h"
 
 static const int kDefaultBlockSize = 8192;
 
@@ -17,7 +19,7 @@ int CopyingInputStream::Skip(int count) {
 	int skipped = 0;
 	while (skipped < count) {
 		int bytes = Read(junk, min(count - skipped,
-			                       implicit_cast<int>(sizeof(junk))));
+			                       (int)(sizeof(junk))));
 		if (bytes <= 0) {
 			// EOF or read error
 			return skipped;
@@ -128,7 +130,7 @@ void CopyingInputStreamAdaptor::AllocateBufferIfNeeded() {
 	}
 }
 
-void CopyingInputStreamAdaptor::::FreeBuffer() {
+void CopyingInputStreamAdaptor::FreeBuffer() {
 	if (backup_bytes_ != 0) {
 		printf("backup_bytes_ != 0\n");
 	}
@@ -257,7 +259,7 @@ FileInputStream::CopyingFileInputStream::CopyingFileInputStream(
     errno_(0),
     previous_seek_failed_(false) {}
 
-FileInputStream::CopyingFileInputStream::~CopyingInputStream() {
+FileInputStream::CopyingFileInputStream::~CopyingFileInputStream() {
 	if (close_on_delete_) {
 		if (!Close()) {
 			printf("close() failed !\n");

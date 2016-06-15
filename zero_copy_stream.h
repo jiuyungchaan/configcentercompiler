@@ -4,7 +4,7 @@
 #define __CCC_ZERO_COPY_STREAM_H__
 
 #include <string>
-#include <common.h>
+#include "common.h"
 
 class ZeroCopyInputStream
 {

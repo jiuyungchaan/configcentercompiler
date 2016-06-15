@@ -4,8 +4,8 @@
 
 #include <string>
 #include <iosfwd>
-#include <zero_copy_stream.h>
-#include <common.h>
+#include "zero_copy_stream.h"
+#include "common.h"
 
 // A generic traditional input stream interface.
 // 
