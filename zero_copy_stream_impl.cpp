@@ -6,11 +6,27 @@
 #include <limits>
 // #include <maths.h>
 #include <stdio.h>
+// #include <unistd.h>
+// #include <sys/types.h>
+// #include <sys/stat.h>
+// #include <fcntl.h>
+#include <errno.h>
 
 #include "common.h"
 
 static const int kDefaultBlockSize = 8192;
 
+namespace {
+//  EINTR 
+int close_no_eintr(int fd) {
+	int result;
+	do {
+		result = close(fd);
+	} while (result < 0 && errno == EINTR);
+	return result;
+}
+
+} //  namespace
 
 CopyingInputStream::~CopyingInputStream() {}
 
@@ -18,7 +34,7 @@ int CopyingInputStream::Skip(int count) {
 	char junk[4096];
 	int skipped = 0;
 	while (skipped < count) {
-		int bytes = Read(junk, min(count - skipped,
+		int bytes = Read(junk, std::min(count - skipped,
 			                       (int)(sizeof(junk))));
 		if (bytes <= 0) {
 			// EOF or read error
@@ -143,11 +159,11 @@ void CopyingInputStreamAdaptor::FreeBuffer() {
 
  CopyingOutputStreamAdaptor::CopyingOutputStreamAdaptor(
  	CopyingOutputStream *copying_stream, int block_size)
-  : copying_stream(copying_stream),
+  : copying_stream_(copying_stream),
     owns_copying_stream_(false),
     failed_(false),
     position_(0),
-    buffer_size_(block_size_ > 0 ? block_size : kDefaultBlockSize),
+    buffer_size_(block_size > 0 ? block_size : kDefaultBlockSize),
     buffer_used_(0) {}
 
 CopyingOutputStreamAdaptor::~CopyingOutputStreamAdaptor() {
@@ -267,7 +283,7 @@ FileInputStream::CopyingFileInputStream::~CopyingFileInputStream() {
 	}
 }
 
-bool FileInputStream::CopyingInputStream::Close() {
+bool FileInputStream::CopyingFileInputStream::Close() {
 	if (is_closed_);
 
 	is_closed_ = true;
@@ -282,7 +298,7 @@ bool FileInputStream::CopyingInputStream::Close() {
 	return true;
 }
 
-int FileInputStream::CopyingInputStream::Read(void *buffer, int size) {
+int FileInputStream::CopyingFileInputStream::Read(void *buffer, int size) {
 	if (is_closed_);
 
 	int result;
@@ -371,7 +387,7 @@ bool FileOutputStream::CopyingFileOutputStream::Close() {
 		// The docs on close() do not specify whether a file descriptor is still
 		// open after close() fails with EIO. However, the glibc source code 
 		// seems to indicate that it is not.
-		error_ = errno;
+		errno_ = errno;
 		return false;
 	}
 
